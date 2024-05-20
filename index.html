@@ -6,15 +6,15 @@
 
 <meta charset="UTF-8">
 
-<title>Bitsy experiment 2024</title>
+<title>let's play a game</title>
 
 <script type="text/bitsyGameData" id="exportedGameData">
-Bitsy experiment 2024
+let's play a game
 
-# BITSY VERSION 8.10
+# BITSY VERSION 8.12
 
 ! VER_MAJ 8
-! VER_MIN 10
+! VER_MIN 12
 ! ROOM_FORMAT 1
 ! DLG_COMPAT 0
 ! TXT_MODE 0
@@ -156,7 +156,7 @@ DLG 2
 BLIP 2
 
 DLG 0
-dance the night away
+you finished the game!
 NAME cat dialog
 
 DLG 1
@@ -410,6 +410,8 @@ function InputSystem() {
 		// bitsyLog("KEYUP -- " + event.keyCode, "system");
 		pressed[event.keyCode] = false;
 		ignored[event.keyCode] = false;
+
+		isRestartComboPressed = false;
 	}
 
 	this.ontouchstart = function(event) {
@@ -1217,8 +1219,15 @@ function BitsySystem(name) {
 	};
 
 	this._exit = function() {
-		input.unlisten(graphics.getCanvas());
+		// disable graphics
+		var canvas = graphics.getCanvas();
+		if (canvas) {
+			input.unlisten(canvas);	
+		}
+
+		// disable sound
 		sound.mute();
+
 		self._active = false;
 	};
 
@@ -1596,7 +1605,7 @@ var bitsy = mainProcess.system;
 // is this the right place for this to live?
 var version = {
 	major: 8, // major changes
-	minor: 10, // smaller changes
+	minor: 12, // smaller changes
 	devBuildPhase: "RELEASE",
 };
 function getEngineVersion() {
@@ -7692,8 +7701,8 @@ TextEffects["_debug_highlight"] = new DebugHighlightEffect();
 </script>
 
 <script>
-function TileRenderer() {
-bitsy.log("!!!!! NEW TILE RENDERER");
+function TileRenderer(debugName) {
+bitsy.log("!!!!! NEW TILE RENDERER: " + debugName);
 
 var drawingCache = {
 	source: {},
@@ -7972,7 +7981,7 @@ var isPlayerEmbeddedInEditor = false;
 
 var renderer;
 if (engineFeatureFlags.isRendererEnabled) {
-	renderer = new TileRenderer();
+	renderer = new TileRenderer("bitsy");
 }
 
 var curGameData = null;
@@ -8239,6 +8248,7 @@ function update(dt) {
 }
 
 var isAnyButtonHeld = false;
+var isMenuButtonHeld = false;
 var isIgnoringInput = false;
 
 function isAnyButtonDown() {
@@ -8305,13 +8315,14 @@ function updateInput() {
 		isIgnoringInput = false;
 	}
 
-	// quit if the user ever presses the restart button
+	// quit when the user releases the restart button
 	// todo : should I rename it bitsy.BTN_RESTART or bitsy.BTN_QUIT or bitsy.BTN_OFF?
-	if (bitsy.button(bitsy.BTN_MENU)) {
+	if (isMenuButtonHeld && !bitsy.button(bitsy.BTN_MENU)) {
 		isGameOver = true;
 	}
 
 	isAnyButtonHeld = isAnyButtonDown();
+	isMenuButtonHeld = bitsy.button(bitsy.BTN_MENU);
 }
 
 var animationCounter = 0;
@@ -11993,6 +12004,7 @@ CHAR 9835
 011011
 011000
 000000
+</script>
 </script>
 
 </head>
